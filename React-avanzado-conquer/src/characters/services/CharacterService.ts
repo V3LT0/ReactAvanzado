@@ -10,8 +10,19 @@ export class CharacterService {
     }
 
     async deleteCharacter(id: number): Promise<void> {
-        await axios.delete(`${this.BASE_URL}/${id}`)
+        const response = await axios.delete(`${this.BASE_URL}/${id}`)
+        return response.data
     }
 
-    
+    async editCharacter(data: Character): Promise<Character> {
+        const response = await axios.put(`${this.BASE_URL}/${data.id}`, data)
+        return response.data
+    }
+
+    async addCharacter(data: Omit<Character, "id">): Promise<Character> {
+        const response = await axios.post<Character>(`${this.BASE_URL}`, data)
+        return response.data
+    }
 }
+
+export const characterService = new CharacterService();
