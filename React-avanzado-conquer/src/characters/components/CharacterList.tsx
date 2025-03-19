@@ -1,6 +1,11 @@
+import { useNavigate } from "react-router-dom";
+import { CharacterContext } from "../context/CharacterContext";
 import { Character } from "../models";
-import { CharacterService } from "../services";
+import { characterService } from "../services";
 import { CharacterItem } from "./CharacterItem";
+import { useCallback, useContext } from "react";
+import { useAxios } from "../../shared/hooks/useAxios";
+import { CharacterActionType } from "../models/CharacterState";
 
 interface Props {
     characters: Character[],
@@ -8,16 +13,28 @@ interface Props {
 }
 
 export const CharacterList = ({ characters, onDelete}: Props) => {
+    const {dispatch} = useContext(CharacterContext)
+    const navigate = useNavigate();
 
-    const characterService = new CharacterService()
+    const deleteCharachterServiceCall = useCallback((id: number) => characterService.deleteCharacter(id),[])
+
+    const {error: deleteError, executeFetch: executeDeleteCharacterFetch} = useAxios<number, void>({
+        serviceCall: deleteCharachterServiceCall
+    })
 
     const handleDelete = async (id:number) => {
-        try {
-            await characterService.deleteCharacter(id)
+        executeDeleteCharacterFetch(id)
+        if(!deleteError) {
+            dispatch({
+                type: CharacterActionType.DELETE,
+                payload: id
+            })
             onDelete()
-        } catch (err) {
-            console.log("Error al eliminar un personaje", err)
         }
+    }
+
+    const handleEdit = (id:number) => {
+        navigate(`/character/${id}`)
     }
     
     return(
@@ -25,6 +42,7 @@ export const CharacterList = ({ characters, onDelete}: Props) => {
             {characters.map((character) => (
                 <CharacterItem key={character.id} character={character}>                    
                     <button onClick={() => handleDelete(character.id)}>Eliminar</button>
+                    <button onClick={() => handleEdit(character.id)}>Editar</button>
                 </CharacterItem>
             ))}
         </ul>

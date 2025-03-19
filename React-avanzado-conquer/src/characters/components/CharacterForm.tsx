@@ -8,6 +8,7 @@ import { CharacterContext } from "../context/CharacterContext";
 import { CharacterActionType } from "../models/CharacterState";
 import { characterService } from "../services";
 import { FormInput } from "../../shared/components";
+import { ModalContext } from "../../shared/components/Modal/context/ModalContext";
 
 const characterSchema = z.object(
     {
@@ -45,6 +46,7 @@ export const CharacterForm = () => {
 
     const { id } = useParams()
     const {state, dispatch} = useContext(CharacterContext)
+    const {setState: modalSetState} = useContext(ModalContext)
     const navigate = useNavigate()
 
     useEffect(() => {
@@ -66,6 +68,7 @@ export const CharacterForm = () => {
             }
 
             dispatch({type: actionType, payload: result})
+            modalSetState(false)
             navigate("/characters")
         } catch (error){
             if(error instanceof Error)

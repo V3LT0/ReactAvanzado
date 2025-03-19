@@ -2,34 +2,44 @@ import { useAxios } from "../shared/hooks/useAxios"
 import { Character } from "./models"
 import { CharacterList } from "./components/CharacterList"
 import { characterService } from "./services"
-import { useCallback, useContext } from "react"
+import { useCallback, useContext, useEffect } from "react"
 import { ModalContext } from "../shared/components/Modal/context/ModalContext"
 import { Modal } from "../shared/components/Modal/Modal"
+import { CharacterForm } from "./components/CharacterForm"
+import { CharacterContext } from "./context/CharacterContext"
+import { CharacterActionType } from "./models/CharacterState"
 
 export const CharacterContainer = () => {
     const serviceCall = useCallback(() => characterService.getCharacters(),[])
     const { setState } = useContext(ModalContext)
+    const { state, dispatch } = useContext(CharacterContext)
 
-    const {isLoading, data: characters, error} = useAxios<void, Character[]>({
+    const {isLoading, data: characters, error, executeFetch} = useAxios<void, Character[]>({
         serviceCall,
         trigger: true,
     })
 
-    const triggerChange = () => {
-        //setTrigger((prev) => !prev)
+    const fetchData = () => {
+        executeFetch()
     }
 
     const openModal = () => {
         setState(true)
     }
 
+    useEffect(() => {
+        if(characters && characters.length > 0) {
+            dispatch({type: CharacterActionType.NEW, payload: characters})
+        }
+    }, [characters, dispatch])
+
     if(isLoading) return <p>Cargando personajes...</p>
     if(error) return <p>Error: {error}</p>
 
     return (
         <>
-            {characters && characters?.length > 0 ? 
-                <CharacterList characters={characters} onDelete={triggerChange}>
+            {state && state.characters.size > 0 ? 
+                <CharacterList characters={Array.from(state.characters,([, value]) => value)} onDelete={fetchData}>
                 </CharacterList>
                 :
                 (
@@ -38,7 +48,7 @@ export const CharacterContainer = () => {
             }
             <button onClick={openModal}>Crear Personaje</button>
             <Modal>
-                <div></div>
+                <CharacterForm/>
             </Modal>
         </>
     )

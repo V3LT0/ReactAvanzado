@@ -1,6 +1,7 @@
 import { ReactNode, useContext, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { ModalContext } from "./context/ModalContext";
+import "./Modal.css"
 
 interface Props {
     children: ReactNode;
@@ -30,6 +31,8 @@ export const Modal = ({children}: Props) => {
             document.removeEventListener("keydown", handleEsc)
         }
     },[setState, state])
+
+    if(!state) return null;
 
     const modalRoot = document.getElementById("modal")
     if(!modalRoot) return null;
